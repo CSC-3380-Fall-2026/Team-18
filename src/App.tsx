@@ -5,7 +5,10 @@ function App() {
       <p className="text-lg text-white">
         Buy, sell, and trade on campus — built for LSU students.
       </p>
-      <button className="rounded-lg bg-yellow-400 px-6 py-3 font-semibold text-purple-900 hover:bg-yellow-300">
+      <button
+        disabled
+        title="Listings on the way!"
+        className="rounded-lg bg-yellow-400 px-6 py-3 font-semibold text-purple-900 opacity-50 cursor-not-allowed">
         Browse listings
       </button>
     </main>
