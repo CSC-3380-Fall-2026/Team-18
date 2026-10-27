@@ -1,1 +1,89 @@
 @import "tailwindcss";
+
+@theme {
+  /* ShopFlow design tokens: neon console */
+  --color-bg: #02040d;
+  --color-surface: #0a1024;
+  --color-neon: #2f6bff;
+  --color-glow: #38d6ff;
+  --color-lsu-gold: #fdd023;
+  --color-verified: #00ad97;
+  --color-ink: #eef3ff;
+  --color-muted: #7f8bb0;
+
+  --font-display: "Exo 2", sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --animate-plasma: plasma 10s ease-in-out infinite alternate;
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-trace: trace 6s linear infinite;
+  --animate-streak: streak 7s ease-in-out infinite;
+  --animate-twinkle: twinkle 3.5s ease-in-out infinite;
+
+  @keyframes trace {
+    0% { stroke-dashoffset: 1000; }
+    100% { stroke-dashoffset: 0; }
+  }
+
+  @keyframes streak {
+    0% { transform: translateX(-100%); opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: translateX(300%); opacity: 0; }
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.8; }
+  }
+
+  @keyframes plasma {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.55; }
+    100% { transform: scale(1.15) rotate(12deg); opacity: 0.8; }
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(8deg); }
+  }
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+}
+
+/* Blue grid that lights up only around the cursor */
+@utility grid-glow {
+  background-image:
+    linear-gradient(to right, rgb(47 107 255 / 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(47 107 255 / 0.3) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(240px circle at var(--x, -999px) var(--y, -999px), black, transparent 70%);
+}
+
+/* Neon light strip with bloom */
+@utility neon-strip {
+  background: var(--color-neon);
+  box-shadow:
+    0 0 8px var(--color-neon),
+    0 0 24px var(--color-neon),
+    0 0 60px rgb(47 107 255 / 0.6);
+}
+
+/* Glossy floor reflection under tiles */
+@utility reflect {
+  -webkit-box-reflect: below 10px linear-gradient(transparent 70%, rgb(255 255 255 / 0.12));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-plasma,
+  .animate-float,
+  .animate-trace,
+  .animate-streak,
+  .animate-twinkle { animation: none; }
+}
