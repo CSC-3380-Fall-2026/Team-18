@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Background from './components/Background'
+import FeaturedCard from './components/FeaturedCard'
 import TopBar from './components/TopBar'
 import Button from './components/ui/Button'
 import Tag from './components/ui/Tag'
@@ -54,25 +55,30 @@ function App() {
       <TopBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="relative px-8 pt-10">
-        {/* Focused item details, console-style */}
+        {/* Focused item: details on the left, featured card on the right */}
         {focused && (
-          <section key={focused.id} className="min-h-56 max-w-3xl animate-[fadeIn_0.4s_ease-out]">
-            <p
-              className="font-display text-xs font-semibold uppercase tracking-[0.25em] transition-colors duration-700"
-              style={{ color: accent }}
-            >
-              {focused.tag}
-            </p>
-            <h1 className="mt-3 font-display text-5xl font-bold leading-tight">{focused.title}</h1>
-            <p className="mt-3 text-muted">
-              Pickup at <span className="text-ink">{focused.pickup}</span>
-            </p>
-            <div className="mt-6 flex items-center gap-4">
-              <span className="font-display text-3xl font-bold text-lsu-gold">${focused.price}</span>
-              <Button>Message Seller</Button>
-              <Button variant="ghost">♡ Wishlist</Button>
+          <div className="flex items-start justify-between gap-10">
+            <section key={focused.id} className="min-h-56 max-w-3xl animate-[fadeIn_0.4s_ease-out]">
+              <p
+                className="font-display text-xs font-semibold uppercase tracking-[0.25em] transition-colors duration-700"
+                style={{ color: accent }}
+              >
+                {focused.tag}
+              </p>
+              <h1 className="mt-3 font-display text-5xl font-bold leading-tight">{focused.title}</h1>
+              <p className="mt-3 text-muted">
+                Pickup at <span className="text-ink">{focused.pickup}</span>
+              </p>
+              <div className="mt-6 flex items-center gap-4">
+                <span className="font-display text-3xl font-bold text-lsu-gold">${focused.price}</span>
+                <Button>Message Seller</Button>
+                <Button variant="ghost">♡ Wishlist</Button>
+              </div>
+            </section>
+            <div className="hidden lg:block">
+              <FeaturedCard listing={focused} accent={accent} />
             </div>
-          </section>
+          </div>
         )}
 
         {/* Seasonal tag filters */}

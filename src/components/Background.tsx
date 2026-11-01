@@ -6,13 +6,11 @@ type BackgroundProps = {
 }
 
 const circuitPaths = [
-  'M0 60 H300 V110 H340',
-  'M180 0 V150 H210 V210',
-  'M80 240 H260 V300',
-  'M1440 70 H1120 V140 H1080',
-  'M1280 0 V200 H1250',
+  'M0 330 H180 V380 H220',
+  'M60 900 V840 H140',
   'M0 760 H160 V700 H230',
   'M260 900 V780 H330 V740',
+  'M1440 560 H1380 V620',
   'M1440 690 H1180 V780 H1120',
   'M1320 900 V720',
 ]
@@ -39,7 +37,13 @@ function Background({ accent }: BackgroundProps) {
       />
 
       {/* Circuit traces with a pulse of light traveling along each one */}
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <svg
+        className="absolute inset-0 h-full w-full"
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="xMidYMid slice"
+        // Fade the traces out behind the main content so text stays readable
+        style={{ maskImage: 'radial-gradient(ellipse 55% 45% at 35% 40%, transparent 30%, black 75%)' }}
+      >
         {circuitPaths.map((d, i) => (
           <g key={d} fill="none" strokeLinecap="round">
             <path d={d} stroke="rgb(47 107 255 / 0.25)" strokeWidth="1.5" />
@@ -73,4 +77,3 @@ function Background({ accent }: BackgroundProps) {
 }
 
 export default Background
-

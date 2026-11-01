@@ -1,3 +1,5 @@
+import Button from './ui/Button'
+
 const navTabs = ['Explore', 'Map', 'Sell', 'Messages']
 
 type TopBarProps = {
@@ -25,7 +27,16 @@ function TopBar({ activeTab, onTabChange }: TopBarProps) {
           </button>
         ))}
       </nav>
-      <div className="h-9 w-9 rounded-full border-2 border-neon bg-surface shadow-[0_0_14px_rgb(47_107_255/0.7)]" />
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" onClick={() => onTabChange('Sell')}>
+          + Post an item
+        </Button>
+        {/* Profile avatar with notification dot */}
+        <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-neon bg-surface font-display text-sm font-bold shadow-[0_0_14px_rgb(47_107_255/0.7)]">
+          CA
+          <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-bg bg-lsu-gold" />
+        </div>
+      </div>
     </header>
   )
 }
