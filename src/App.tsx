@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
 import Background from './components/Background'
 import FeaturedCard from './components/FeaturedCard'
+import Login from './components/Login'
 import TopBar from './components/TopBar'
 import Button from './components/ui/Button'
 import Tag from './components/ui/Tag'
@@ -9,6 +12,8 @@ import { sampleListings, seasonalTags, tagAccents } from './data/sampleListings'
 
 function App() {
   const pageRef = useRef<HTMLDivElement>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('Explore')
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
@@ -40,6 +45,20 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [visibleListings.length])
 
+  // Who is logged in? Check once on load, then listen for login/logout
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setAuthLoading(false)
+    })
+
+    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
+    })
+
+    return () => data.subscription.unsubscribe()
+  }, [])
+
   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
     const page = pageRef.current
     if (!page) return
@@ -47,12 +66,32 @@ function App() {
     page.style.setProperty('--y', `${event.clientY}px`)
   }
 
+  // Still checking for a session: show nothing for a split second
+  if (authLoading) return null
+
+  // Not logged in: show the login screen
+  if (!session) {
+    return (
+      <div className="relative min-h-screen overflow-hidden">
+        <Background accent="#2f6bff" />
+        <div className="relative">
+          <Login />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div ref={pageRef} onMouseMove={handleMouseMove} className="relative min-h-screen overflow-hidden">
       <Background accent={accent} />
       <div className="grid-glow pointer-events-none fixed inset-0" />
 
-      <TopBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <TopBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        email={session.user.email ?? ''}
+        onSignOut={() => supabase.auth.signOut()}
+      />
 
       <main className="relative px-8 pt-10">
         {/* Focused item: details on the left, featured card on the right */}
@@ -100,7 +139,7 @@ function App() {
           {visibleListings.map((listing, index) => (
             <Tile
               key={listing.id}
-              listing={listing}
+                            listing={listing}
               focused={index === focusedIndex}
               onFocus={() => setFocusedIndex(index)}
             />
@@ -112,5 +151,3 @@ function App() {
 }
 
 export default App
-
-    

@@ -5,9 +5,16 @@ const navTabs = ['Explore', 'Map', 'Sell', 'Messages']
 type TopBarProps = {
   activeTab: string
   onTabChange: (tab: string) => void
+  email: string
+  onSignOut: () => void
 }
 
-function TopBar({ activeTab, onTabChange }: TopBarProps) {
+function TopBar({ activeTab, onTabChange, email, onSignOut }: TopBarProps) {
+  // "calvin.akpunku@lsu.edu" -> "CA", "cakpun1@lsu.edu" -> "CA"
+  const name = email.split('@')[0]
+  const parts = name.split(/[._]/).filter(Boolean)
+  const initials = (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase()
+
   return (
     <header className="relative flex items-center justify-between px-8 py-6">
       <span className="font-display text-xl font-extrabold tracking-wide">
@@ -31,11 +38,15 @@ function TopBar({ activeTab, onTabChange }: TopBarProps) {
         <Button variant="ghost" onClick={() => onTabChange('Sell')}>
           + Post an item
         </Button>
-        {/* Profile avatar with notification dot */}
-        <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-neon bg-surface font-display text-sm font-bold shadow-[0_0_14px_rgb(47_107_255/0.7)]">
-          CA
+        {/* Profile avatar with notification dot (click to log out for now) */}
+        <button
+          onClick={onSignOut}
+          title={`${email} (click to log out)`}
+          className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-neon bg-surface font-display text-sm font-bold shadow-[0_0_14px_rgb(47_107_255/0.7)]"
+        >
+          {initials}
           <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-bg bg-lsu-gold" />
-        </div>
+        </button>
       </div>
     </header>
   )
