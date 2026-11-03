@@ -1,6 +1,8 @@
+
 import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import AddListing from './components/AddListing'
 import Background from './components/Background'
 import FeaturedCard from './components/FeaturedCard'
 import Login from './components/Login'
@@ -93,59 +95,63 @@ function App() {
         onSignOut={() => supabase.auth.signOut()}
       />
 
-      <main className="relative px-8 pt-10">
-        {/* Focused item: details on the left, featured card on the right */}
-        {focused && (
-          <div className="flex items-start justify-between gap-10">
-            <section key={focused.id} className="min-h-56 max-w-3xl animate-[fadeIn_0.4s_ease-out]">
-              <p
-                className="font-display text-xs font-semibold uppercase tracking-[0.25em] transition-colors duration-700"
-                style={{ color: accent }}
-              >
-                {focused.tag}
-              </p>
-              <h1 className="mt-3 font-display text-5xl font-bold leading-tight">{focused.title}</h1>
-              <p className="mt-3 text-muted">
-                Pickup at <span className="text-ink">{focused.pickup}</span>
-              </p>
-              <div className="mt-6 flex items-center gap-4">
-                <span className="font-display text-3xl font-bold text-lsu-gold">${focused.price}</span>
-                <Button>Message Seller</Button>
-                <Button variant="ghost">♡ Wishlist</Button>
+      {activeTab === 'Sell' ? (
+        <AddListing onPosted={() => setActiveTab('Explore')} />
+      ) : (
+        <main className="relative px-8 pt-10">
+          {/* Focused item: details on the left, featured card on the right */}
+          {focused && (
+            <div className="flex items-start justify-between gap-10">
+              <section key={focused.id} className="min-h-56 max-w-3xl animate-[fadeIn_0.4s_ease-out]">
+                <p
+                  className="font-display text-xs font-semibold uppercase tracking-[0.25em] transition-colors duration-700"
+                  style={{ color: accent }}
+                >
+                  {focused.tag}
+                </p>
+                <h1 className="mt-3 font-display text-5xl font-bold leading-tight">{focused.title}</h1>
+                <p className="mt-3 text-muted">
+                  Pickup at <span className="text-ink">{focused.pickup}</span>
+                </p>
+                <div className="mt-6 flex items-center gap-4">
+                  <span className="font-display text-3xl font-bold text-lsu-gold">${focused.price}</span>
+                  <Button>Message Seller</Button>
+                  <Button variant="ghost">♡ Wishlist</Button>
+                </div>
+              </section>
+              <div className="hidden lg:block">
+                <FeaturedCard listing={focused} accent={accent} />
               </div>
-            </section>
-            <div className="hidden lg:block">
-              <FeaturedCard listing={focused} accent={accent} />
             </div>
+          )}
+
+          {/* Seasonal tag filters */}
+          <div className="mt-12 flex flex-wrap gap-3">
+            {seasonalTags.map((tag) => (
+              <Tag key={tag} label={tag} active={selectedTag === tag} onClick={() => handleTagClick(tag)} />
+            ))}
           </div>
-        )}
 
-        {/* Seasonal tag filters */}
-        <div className="mt-12 flex flex-wrap gap-3">
-          {seasonalTags.map((tag) => (
-            <Tag key={tag} label={tag} active={selectedTag === tag} onClick={() => handleTagClick(tag)} />
-          ))}
-        </div>
-
-        {/* Tile row */}
-        <div className="mt-8 flex items-center gap-3">
-          <p className="font-display text-sm font-semibold text-muted">
-            {selectedTag ? `${selectedTag} near you` : 'Trending near you'}
-          </p>
-          <span className="rounded border border-white/15 px-1.5 font-display text-[10px] text-muted">◀ ▶</span>
-        </div>
-        <div className="mt-4 flex min-h-40 items-end gap-5 pb-24">
-          {visibleListings.length === 0 && <p className="text-muted">Nothing listed for this season yet.</p>}
-          {visibleListings.map((listing, index) => (
-            <Tile
-              key={listing.id}
-                            listing={listing}
-              focused={index === focusedIndex}
-              onFocus={() => setFocusedIndex(index)}
-            />
-          ))}
-        </div>
-      </main>
+          {/* Tile row */}
+          <div className="mt-8 flex items-center gap-3">
+            <p className="font-display text-sm font-semibold text-muted">
+              {selectedTag ? `${selectedTag} near you` : 'Trending near you'}
+            </p>
+            <span className="rounded border border-white/15 px-1.5 font-display text-[10px] text-muted">◀ ▶</span>
+          </div>
+          <div className="mt-4 flex min-h-40 items-end gap-5 pb-24">
+            {visibleListings.length === 0 && <p className="text-muted">Nothing listed for this season yet.</p>}
+            {visibleListings.map((listing, index) => (
+              <Tile
+                key={listing.id}
+                listing={listing}
+                focused={index === focusedIndex}
+                onFocus={() => setFocusedIndex(index)}
+              />
+            ))}
+          </div>
+        </main>
+      )}
     </div>
   )
 }
