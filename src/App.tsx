@@ -1,7 +1,7 @@
-
 import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { fetchListings } from './lib/listings'
 import AddListing from './components/AddListing'
 import Background from './components/Background'
 import FeaturedCard from './components/FeaturedCard'
@@ -11,6 +11,7 @@ import Button from './components/ui/Button'
 import Tag from './components/ui/Tag'
 import Tile from './components/ui/Tile'
 import { sampleListings, seasonalTags, tagAccents } from './data/sampleListings'
+import type { Listing } from './data/sampleListings'
 
 function App() {
   const pageRef = useRef<HTMLDivElement>(null)
@@ -19,11 +20,15 @@ function App() {
   const [activeTab, setActiveTab] = useState('Explore')
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [realListings, setRealListings] = useState<Listing[]>([])
+
+  // Real listings from Supabase. Fall back to the samples while the database is empty.
+  const allListings = realListings.length > 0 ? realListings : sampleListings
 
   // Only keep listings that match the selected tag (or all of them if none is selected)
   const visibleListings = selectedTag
-    ? sampleListings.filter((listing) => listing.tag === selectedTag)
-    : sampleListings
+    ? allListings.filter((listing) => listing.tag === selectedTag)
+    : allListings
 
   const focused = visibleListings[focusedIndex] ?? visibleListings[0]
   const accent = focused ? (tagAccents[focused.tag] ?? '#2f6bff') : '#2f6bff'
@@ -61,6 +66,27 @@ function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
+  // Once someone is logged in, load the listings from the database
+  const userId = session?.user.id
+  useEffect(() => {
+    if (!userId) return
+    let active = true
+    fetchListings().then((listings) => {
+      if (active) setRealListings(listings)
+    })
+    return () => {
+      active = false
+    }
+  }, [userId])
+
+  // After posting: go back to Explore, show everything, and reload so the new item appears first
+  function handlePosted() {
+    setActiveTab('Explore')
+    setSelectedTag(null)
+    setFocusedIndex(0)
+    fetchListings().then(setRealListings)
+  }
+
   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
     const page = pageRef.current
     if (!page) return
@@ -96,7 +122,7 @@ function App() {
       />
 
       {activeTab === 'Sell' ? (
-        <AddListing onPosted={() => setActiveTab('Explore')} />
+        <AddListing onPosted={handlePosted} />
       ) : (
         <main className="relative px-8 pt-10">
           {/* Focused item: details on the left, featured card on the right */}

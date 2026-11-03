@@ -11,7 +11,7 @@ export type Seller = {
 }
 
 export type Listing = {
-  id: number
+  id: number | string
   title: string
   price: number
   pickup: string
