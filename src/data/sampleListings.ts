@@ -17,6 +17,7 @@ export type Listing = {
   pickup: string
   tag: string
   icon: string
+  photo?: string | null
   condition: string
   seller: Seller
 }

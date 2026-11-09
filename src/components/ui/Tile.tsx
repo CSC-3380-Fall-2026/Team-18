@@ -18,8 +18,19 @@ function Tile({ listing, focused, onFocus }: TileProps) {
         focused ? 'h-40 w-40 ring-2 ring-ink shadow-[0_0_30px_rgb(47_107_255/0.8)]' : 'h-28 w-28 opacity-60'
       }`}
     >
-      <span className={`transition-all duration-300 ${focused ? 'text-5xl' : 'text-4xl'}`}>{listing.icon}</span>
-      <span className="mt-2 font-display text-sm font-bold text-lsu-gold">${listing.price}</span>
+      {listing.photo ? (
+        <>
+          <img src={listing.photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          {/* Dark fade so the price stays readable on any photo */}
+          <span className="absolute inset-0 bg-gradient-to-t from-bg/90 via-bg/10 to-transparent" />
+          <span className="absolute bottom-3 font-display text-sm font-bold text-lsu-gold">${listing.price}</span>
+        </>
+      ) : (
+        <>
+          <span className={`transition-all duration-300 ${focused ? 'text-5xl' : 'text-4xl'}`}>{listing.icon}</span>
+          <span className="mt-2 font-display text-sm font-bold text-lsu-gold">${listing.price}</span>
+        </>
+      )}
       {/* Season color bar */}
       <span className="absolute inset-x-0 bottom-0 h-1" style={{ background: accent }} />
     </button>
