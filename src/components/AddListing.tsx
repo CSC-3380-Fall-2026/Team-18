@@ -44,7 +44,33 @@ function AddListing({ onPosted }: AddListingProps) {
     }
 
     setSaving(true)
-    // seller_id and status fill themselves in (seller_id defaults to the logged-in user)
+
+    // 1. Upload the photo (if there is one) into the seller's own folder in Storage
+    let photoUrl: string | null = null
+    if (photo) {
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData.user?.id
+      if (!userId) {
+        setSaving(false)
+        setError('You need to be logged in to post.')
+        return
+      }
+
+      const extension = photo.name.split('.').pop() ?? 'jpg'
+      const path = `${userId}/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await supabase.storage.from('listing-photos').upload(path, photo)
+
+      if (uploadError) {
+        setSaving(false)
+        setError(`Photo upload failed: ${uploadError.message}`)
+        return
+      }
+
+      // Turn the stored file into a public link we can show in <img>
+      photoUrl = supabase.storage.from('listing-photos').getPublicUrl(path).data.publicUrl
+    }
+
+    // 2. Save the listing (seller_id and status fill themselves in)
     const { error: insertError } = await supabase.from('listings').insert({
       title: title.trim(),
       price: Number(price),
@@ -53,6 +79,7 @@ function AddListing({ onPosted }: AddListingProps) {
       description: description.trim() || null,
       pickup_location: pickupLocation.trim(),
       seasonal_tag: seasonalTag || null,
+      photos: photoUrl ? [photoUrl] : null,
     })
     setSaving(false)
 
@@ -190,7 +217,7 @@ function AddListing({ onPosted }: AddListingProps) {
               )}
               <span className="text-sm text-muted">
                 {photo ? photo.name : 'Click to choose a photo'}
-                <span className="block text-xs">Photo upload saves in the next update</span>
+                <span className="block text-xs">JPG or PNG, shows on your listing</span>
               </span>
             </label>
             <input

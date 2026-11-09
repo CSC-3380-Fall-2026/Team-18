@@ -11,13 +11,17 @@ function FeaturedCard({ listing, accent }: FeaturedCardProps) {
 
   return (
     <Panel key={listing.id} className="w-full max-w-sm animate-[fadeIn_0.4s_ease-out] p-5">
-      {/* Item preview (real photos replace this once uploads exist) */}
-      <div
-        className="flex aspect-[4/3] items-center justify-center rounded-xl text-8xl transition-colors duration-700"
-        style={{ background: `radial-gradient(circle at 50% 40%, ${accent}55, transparent 70%)` }}
-      >
-        {listing.icon}
-      </div>
+      {/* Item preview: real photo if there is one, emoji otherwise */}
+      {listing.photo ? (
+        <img src={listing.photo} alt={listing.title} className="aspect-[4/3] w-full rounded-xl object-cover" />
+      ) : (
+        <div
+          className="flex aspect-[4/3] items-center justify-center rounded-xl text-8xl transition-colors duration-700"
+          style={{ background: `radial-gradient(circle at 50% 40%, ${accent}55, transparent 70%)` }}
+        >
+          {listing.icon}
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-between">
         <span className="rounded-full border border-white/15 px-3 py-1 font-display text-xs text-muted">
@@ -34,7 +38,13 @@ function FeaturedCard({ listing, accent }: FeaturedCardProps) {
         <div className="flex-1">
           <p className="font-display text-sm font-semibold">{seller.name}</p>
           <p className="text-xs text-muted">
-            <span className="text-lsu-gold">★ {seller.rating.toFixed(1)}</span> · {seller.trades} trades
+            {seller.trades > 0 ? (
+              <>
+                <span className="text-lsu-gold">★ {seller.rating.toFixed(1)}</span> · {seller.trades} trades
+              </>
+            ) : (
+              'New seller'
+            )}
           </p>
         </div>
         {seller.verified && (

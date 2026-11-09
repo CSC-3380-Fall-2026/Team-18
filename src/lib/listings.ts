@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 import type { Listing } from '../data/sampleListings'
 
-// Until photo uploads exist, each category gets an emoji stand-in
+// Listings without a photo get an emoji stand-in for their category
 const categoryIcons: Record<string, string> = {
   Textbooks: '📚',
   'Clothing & Merch': '👕',
@@ -21,6 +21,7 @@ type ListingRow = {
   category: string
   condition: string
   seller_id: string
+  photos: string[] | null
 }
 
 type ProfileRow = {
@@ -38,7 +39,7 @@ function initialsFrom(name: string) {
 export async function fetchListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from('listings')
-    .select('id, title, price, pickup_location, seasonal_tag, category, condition, seller_id')
+    .select('id, title, price, pickup_location, seasonal_tag, category, condition, seller_id, photos')
     .eq('status', 'available')
     .order('created_at', { ascending: false })
 
@@ -64,6 +65,7 @@ export async function fetchListings(): Promise<Listing[]> {
       pickup: row.pickup_location,
       tag: row.seasonal_tag ?? row.category,
       icon: categoryIcons[row.category] ?? '📦',
+      photo: row.photos?.[0] ?? null,
       condition: row.condition,
       seller: {
         name,
