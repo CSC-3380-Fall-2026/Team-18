@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { fetchListings } from './lib/listings'
+import type { ChatTarget } from './lib/messages'
 import AddListing from './components/AddListing'
 import Background from './components/Background'
+import ChatPanel from './components/ChatPanel'
 import FeaturedCard from './components/FeaturedCard'
 import Login from './components/Login'
+import MessagesPage from './components/MessagesPage'
 import TopBar from './components/TopBar'
 import Button from './components/ui/Button'
 import Tag from './components/ui/Tag'
@@ -21,6 +24,7 @@ function App() {
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [realListings, setRealListings] = useState<Listing[]>([])
+  const [chat, setChat] = useState<ChatTarget | null>(null)
 
   // Real listings from Supabase. Fall back to the samples while the database is empty.
   const allListings = realListings.length > 0 ? realListings : sampleListings
@@ -123,6 +127,9 @@ function App() {
 
       {activeTab === 'Sell' ? (
         <AddListing onPosted={handlePosted} />
+      ) : activeTab === 'Messages' ? (
+        // key changes when a chat closes, so the inbox reloads with the latest messages
+        <MessagesPage key={chat ? 'chat-open' : 'chat-closed'} myId={session.user.id} onOpen={setChat} />
       ) : (
         <main className="relative px-8 pt-10">
           {/* Focused item: details on the left, featured card on the right */}
@@ -141,7 +148,21 @@ function App() {
                 </p>
                 <div className="mt-6 flex items-center gap-4">
                   <span className="font-display text-3xl font-bold text-lsu-gold">${focused.price}</span>
-                  <Button>Message Seller</Button>
+                  <Button
+                    disabled={!focused.sellerId || focused.sellerId === session.user.id}
+                    onClick={() =>
+                      focused.sellerId &&
+                      setChat({
+                        listingId: String(focused.id),
+                        listingTitle: focused.title,
+                        otherUserId: focused.sellerId,
+                        otherName: focused.seller.name,
+                      })
+                    }
+                    className="disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {focused.sellerId === session.user.id ? 'Your listing' : 'Message Seller'}
+                  </Button>
                   <Button variant="ghost">♡ Wishlist</Button>
                 </div>
               </section>
@@ -177,6 +198,16 @@ function App() {
             ))}
           </div>
         </main>
+      )}
+
+      {/* Chat drawer slides in over any page */}
+      {chat && (
+        <ChatPanel
+          key={`${chat.listingId}:${chat.otherUserId}`}
+          chat={chat}
+          myId={session.user.id}
+          onClose={() => setChat(null)}
+        />
       )}
     </div>
   )

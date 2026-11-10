@@ -18,6 +18,7 @@ export type Listing = {
   tag: string
   icon: string
   photo?: string | null
+  sellerId?: string
   condition: string
   seller: Seller
 }

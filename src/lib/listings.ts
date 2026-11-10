@@ -66,6 +66,7 @@ export async function fetchListings(): Promise<Listing[]> {
       tag: row.seasonal_tag ?? row.category,
       icon: categoryIcons[row.category] ?? '📦',
       photo: row.photos?.[0] ?? null,
+      sellerId: row.seller_id,
       condition: row.condition,
       seller: {
         name,
