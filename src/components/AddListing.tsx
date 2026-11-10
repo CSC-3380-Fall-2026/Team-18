@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { seasonalTags } from '../data/sampleListings'
+import { campusZones } from '../data/campusZones'
 import Panel from './ui/Panel'
 import Button from './ui/Button'
 
@@ -129,15 +130,18 @@ function AddListing({ onPosted }: AddListingProps) {
 
           <div>
             <label htmlFor="pickuplocation" className={labelClass}>Pickup location</label>
-            <input
+            <select
               id="pickuplocation"
-              type="text"
               required
               value={pickupLocation}
-              placeholder="e.g. The Quad"
               onChange={(event) => setPickupLocation(event.target.value)}
               className={fieldClass}
-            />
+            >
+              <option value="" disabled>Pick a meetup spot</option>
+              {campusZones.map((zone) => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
           </div>
 
           <div>

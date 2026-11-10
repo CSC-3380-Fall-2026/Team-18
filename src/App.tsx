@@ -14,6 +14,7 @@ import Button from './components/ui/Button'
 import Tag from './components/ui/Tag'
 import Tile from './components/ui/Tile'
 import { sampleListings, seasonalTags, tagAccents } from './data/sampleListings'
+import { campusZones } from './data/campusZones'
 import type { Listing } from './data/sampleListings'
 
 function App() {
@@ -23,16 +24,18 @@ function App() {
   const [activeTab, setActiveTab] = useState('Explore')
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [selectedZone, setSelectedZone] = useState<string | null>(null)
   const [realListings, setRealListings] = useState<Listing[]>([])
   const [chat, setChat] = useState<ChatTarget | null>(null)
 
   // Real listings from Supabase. Fall back to the samples while the database is empty.
   const allListings = realListings.length > 0 ? realListings : sampleListings
 
-  // Only keep listings that match the selected tag (or all of them if none is selected)
-  const visibleListings = selectedTag
-    ? allListings.filter((listing) => listing.tag === selectedTag)
-    : allListings
+  // Only keep listings that match the selected tag and campus zone (if any are selected)
+  const visibleListings = allListings.filter(
+    (listing) =>
+      (!selectedTag || listing.tag === selectedTag) && (!selectedZone || listing.pickup === selectedZone),
+  )
 
   const focused = visibleListings[focusedIndex] ?? visibleListings[0]
   const accent = focused ? (tagAccents[focused.tag] ?? '#2f6bff') : '#2f6bff'
@@ -87,6 +90,7 @@ function App() {
   function handlePosted() {
     setActiveTab('Explore')
     setSelectedTag(null)
+    setSelectedZone(null)
     setFocusedIndex(0)
     fetchListings().then(setRealListings)
   }
@@ -172,22 +176,42 @@ function App() {
             </div>
           )}
 
-          {/* Seasonal tag filters */}
-          <div className="mt-12 flex flex-wrap gap-3">
+          {/* Seasonal tag filters + campus zone filter */}
+          <div className="mt-12 flex flex-wrap items-center gap-3">
             {seasonalTags.map((tag) => (
               <Tag key={tag} label={tag} active={selectedTag === tag} onClick={() => handleTagClick(tag)} />
             ))}
+            <select
+              value={selectedZone ?? ''}
+              onChange={(event) => {
+                setSelectedZone(event.target.value || null)
+                setFocusedIndex(0)
+              }}
+              aria-label="Filter by campus spot"
+              className={`rounded-full border bg-bg/60 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wider transition focus:outline-none [&>option]:bg-surface [&>option]:text-ink ${
+                selectedZone ? 'border-glow text-ink shadow-[0_0_16px_rgb(56_214_255/0.45)]' : 'border-white/15 text-muted'
+              }`}
+            >
+              <option value="">📍 All of campus</option>
+              {campusZones.map((zone) => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
           </div>
 
           {/* Tile row */}
           <div className="mt-8 flex items-center gap-3">
             <p className="font-display text-sm font-semibold text-muted">
-              {selectedTag ? `${selectedTag} near you` : 'Trending near you'}
+              {selectedZone
+                ? `${selectedTag ?? 'Listings'} at ${selectedZone}`
+                : selectedTag
+                  ? `${selectedTag} near you`
+                  : 'Trending near you'}
             </p>
             <span className="rounded border border-white/15 px-1.5 font-display text-[10px] text-muted">◀ ▶</span>
           </div>
           <div className="mt-4 flex min-h-40 items-end gap-5 pb-24">
-            {visibleListings.length === 0 && <p className="text-muted">Nothing listed for this season yet.</p>}
+            {visibleListings.length === 0 && <p className="text-muted">Nothing listed here yet.</p>}
             {visibleListings.map((listing, index) => (
               <Tile
                 key={listing.id}
