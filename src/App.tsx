@@ -5,6 +5,7 @@ import { fetchListings } from './lib/listings'
 import type { ChatTarget } from './lib/messages'
 import AddListing from './components/AddListing'
 import Background from './components/Background'
+import CampusMap from './components/CampusMap'
 import ChatPanel from './components/ChatPanel'
 import FeaturedCard from './components/FeaturedCard'
 import Login from './components/Login'
@@ -95,6 +96,14 @@ function App() {
     fetchListings().then(setRealListings)
   }
 
+  // From the map: jump to Explore, filtered to that spot
+  function handlePickZone(zone: string) {
+    setSelectedZone(zone)
+    setSelectedTag(null)
+    setFocusedIndex(0)
+    setActiveTab('Explore')
+  }
+
   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
     const page = pageRef.current
     if (!page) return
@@ -131,6 +140,8 @@ function App() {
 
       {activeTab === 'Sell' ? (
         <AddListing onPosted={handlePosted} />
+      ) : activeTab === 'Map' ? (
+        <CampusMap listings={allListings} onPickZone={handlePickZone} />
       ) : activeTab === 'Messages' ? (
         // key changes when a chat closes, so the inbox reloads with the latest messages
         <MessagesPage key={chat ? 'chat-open' : 'chat-closed'} myId={session.user.id} onOpen={setChat} />
