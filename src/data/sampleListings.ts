@@ -48,7 +48,7 @@ export const sampleListings: Listing[] = [
     id: 3,
     title: 'Mini Fridge',
     price: 40,
-    pickup: 'East Campus Apts',
+    pickup: 'East Campus Apartments',
     tag: 'Move-Out Day',
     icon: '🧊',
     condition: 'Good',
@@ -76,12 +76,23 @@ export const sampleListings: Listing[] = [
   },
 ]
 
-export const seasonalTags = ['Tailgate Ready', 'Back to School', 'Move-In Day', 'Move-Out Day']
+export const seasonalTags = [
+  'General Trading',
+  'Tailgate Ready',
+  'Back to School',
+  'Move-In Day',
+  'Move-Out Day',
+  'Mardi Gras',
+  'Graduation',
+]
 
-// Each season gets its own ambient color, like a console theme shifting per game
+// Each tag gets its own ambient color, like a console theme shifting per game
 export const tagAccents: Record<string, string> = {
+  'General Trading': '#38d6ff',
   'Tailgate Ready': '#fdd023',
   'Back to School': '#2f6bff',
   'Move-In Day': '#00ad97',
   'Move-Out Day': '#7b3fe4',
+  'Mardi Gras': '#c026d3',
+  Graduation: '#f8fafc',
 }
