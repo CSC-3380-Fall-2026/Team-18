@@ -1,6 +1,6 @@
 import Button from './ui/Button'
 
-const navTabs = ['Explore', 'Map', 'Sell', 'Messages']
+const navTabs = ['Explore', 'Map', 'Sell', 'Messages', 'Wishlist']
 
 type TopBarProps = {
   activeTab: string
