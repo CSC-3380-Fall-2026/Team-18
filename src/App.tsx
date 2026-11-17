@@ -12,6 +12,8 @@ import ChatPanel from './components/ChatPanel'
 import FeaturedCard from './components/FeaturedCard'
 import Login from './components/Login'
 import MessagesPage from './components/MessagesPage'
+import NotificationBell from './components/NotificationBell'
+import type { Notification } from './components/NotificationBell'
 import TopBar from './components/TopBar'
 import WishlistPage from './components/WishlistPage'
 import Button from './components/ui/Button'
@@ -132,6 +134,47 @@ function App() {
     }
   }, [userId])
 
+  // Notification center: every listing from someone else that matches an alert,
+  // posted after I started watching for it. Newest first.
+  const notifications: Notification[] = []
+  const seenIds = new Set<string>()
+  for (const listing of allListings) {
+    if (!listing.sellerId || listing.sellerId === userId || !listing.createdAt) continue
+    const createdAt = listing.createdAt
+    const hit = alerts.find((alert) => createdAt > alert.created_at && matchesAlert(listing, alert.keyword))
+    if (!hit || seenIds.has(String(listing.id))) continue
+    seenIds.add(String(listing.id))
+    notifications.push({
+      listingId: String(listing.id),
+      keyword: hit.keyword,
+      title: listing.title,
+      price: listing.price,
+      photo: listing.photo,
+      icon: listing.icon,
+      createdAt,
+    })
+  }
+  notifications.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+  // When I last opened the bell (saved in this browser so the badge stays cleared)
+  const seenKey = 'shopflow-notifications-seen'
+  const [lastSeen, setLastSeen] = useState(() => {
+    try {
+      return localStorage.getItem(seenKey) ?? ''
+    } catch {
+      return ''
+    }
+  })
+  function markNotificationsSeen() {
+    const now = new Date().toISOString()
+    setLastSeen(now)
+    try {
+      localStorage.setItem(seenKey, now)
+    } catch {
+      // Storage can be blocked (private mode); the badge just won't remember
+    }
+  }
+
   // Hide the pop-up after a few seconds
   useEffect(() => {
     if (!toast) return
@@ -227,6 +270,14 @@ function App() {
         onTabChange={setActiveTab}
         email={session.user.email ?? ''}
         onSignOut={() => supabase.auth.signOut()}
+        actions={
+          <NotificationBell
+            items={notifications}
+            lastSeen={lastSeen}
+            onOpen={markNotificationsSeen}
+            onView={handleViewListing}
+          />
+        }
       />
 
       {activeTab === 'Sell' ? (
