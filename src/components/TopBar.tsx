@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Button from './ui/Button'
 
 const navTabs = ['Explore', 'Map', 'Sell', 'Messages', 'Wishlist']
@@ -7,16 +8,18 @@ type TopBarProps = {
   onTabChange: (tab: string) => void
   email: string
   onSignOut: () => void
+  // Extra buttons on the right (the notification bell)
+  actions?: ReactNode
 }
 
-function TopBar({ activeTab, onTabChange, email, onSignOut }: TopBarProps) {
+function TopBar({ activeTab, onTabChange, email, onSignOut, actions }: TopBarProps) {
   // "calvin.akpunku@lsu.edu" -> "CA", "cakpun1@lsu.edu" -> "CA"
   const name = email.split('@')[0]
   const parts = name.split(/[._]/).filter(Boolean)
   const initials = (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase()
 
   return (
-    <header className="relative flex items-center justify-between px-8 py-6">
+    <header className="relative z-40 flex items-center justify-between px-8 py-6">
       <span className="font-display text-xl font-extrabold tracking-wide">
         SHOP<span className="text-neon">FLOW</span>
       </span>
@@ -35,17 +38,17 @@ function TopBar({ activeTab, onTabChange, email, onSignOut }: TopBarProps) {
         ))}
       </nav>
       <div className="flex items-center gap-4">
+        {actions}
         <Button variant="ghost" onClick={() => onTabChange('Sell')}>
           + Post an item
         </Button>
-        {/* Profile avatar with notification dot (click to log out for now) */}
+        {/* Profile avatar (click to log out for now) */}
         <button
           onClick={onSignOut}
           title={`${email} (click to log out)`}
           className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-neon bg-surface font-display text-sm font-bold shadow-[0_0_14px_rgb(47_107_255/0.7)]"
         >
           {initials}
-          <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-bg bg-lsu-gold" />
         </button>
       </div>
     </header>
@@ -53,3 +56,4 @@ function TopBar({ activeTab, onTabChange, email, onSignOut }: TopBarProps) {
 }
 
 export default TopBar
+
