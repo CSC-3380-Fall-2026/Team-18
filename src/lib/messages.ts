@@ -42,9 +42,30 @@ export async function fetchThread(listingId: string, otherUserId: string): Promi
   return (data ?? []) as Message[]
 }
 
-// sender_id fills itself in from the logged-in user
+// sender_id fills itself in from the logged-in user.
+// Returns the saved message so it shows up right away, even before the live update arrives.
 export async function sendMessage(listingId: string, receiverId: string, body: string) {
-  return supabase.from('messages').insert({ listing_id: listingId, receiver_id: receiverId, body })
+  return supabase.from('messages').insert({ listing_id: listingId, receiver_id: receiverId, body }).select().single()
+}
+
+// How many messages sent to me I haven't read yet (for the badge on the Messages tab)
+export async function fetchUnreadCount(myId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('receiver_id', myId)
+    .eq('read', false)
+  if (error) {
+    console.error('Could not count unread messages:', error.message)
+    return 0
+  }
+  return count ?? 0
+}
+
+// One person's display name, for the new-message pop-up
+export async function fetchName(userId: string): Promise<string> {
+  const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).maybeSingle()
+  return (data as { full_name: string | null } | null)?.full_name || 'LSU Student'
 }
 
 // Mark everything the other person sent me in this chat as read

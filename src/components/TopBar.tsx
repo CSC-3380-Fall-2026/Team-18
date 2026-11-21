@@ -10,9 +10,11 @@ type TopBarProps = {
   onSignOut: () => void
   // Extra buttons on the right (the notification bell)
   actions?: ReactNode
+  // Little count bubbles on tabs, e.g. { Messages: 2 }
+  badges?: Record<string, number>
 }
 
-function TopBar({ activeTab, onTabChange, email, onSignOut, actions }: TopBarProps) {
+function TopBar({ activeTab, onTabChange, email, onSignOut, actions, badges = {} }: TopBarProps) {
   // "calvin.akpunku@lsu.edu" -> "CA", "cakpun1@lsu.edu" -> "CA"
   const name = email.split('@')[0]
   const parts = name.split(/[._]/).filter(Boolean)
@@ -33,6 +35,11 @@ function TopBar({ activeTab, onTabChange, email, onSignOut, actions }: TopBarPro
             }`}
           >
             {tab}
+            {(badges[tab] ?? 0) > 0 && (
+              <span className="absolute -top-2 -right-4 flex h-4 min-w-4 items-center justify-center rounded-full bg-lsu-gold px-1 font-display text-[10px] font-black text-bg shadow-[0_0_8px_rgb(253_208_35/0.8)]">
+                {badges[tab]}
+              </span>
+            )}
             {activeTab === tab && <span className="neon-strip absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full" />}
           </button>
         ))}

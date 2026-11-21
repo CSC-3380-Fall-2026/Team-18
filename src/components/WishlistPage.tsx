@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import type { Listing } from '../data/sampleListings'
 import type { WishlistAlert } from '../lib/wishlist'
-import { matchesAlert } from '../lib/wishlist'
+import { isNewer, matchesAlert } from '../lib/wishlist'
 import Panel from './ui/Panel'
 import Button from './ui/Button'
 
@@ -154,7 +154,7 @@ function WishlistPage({ listings, savedIds, alerts, myId, onToggleSave, onAddAle
                       key={listing.id}
                       listing={listing}
                       // "New" = posted after you started watching
-                      isNew={!!listing.createdAt && listing.createdAt > alert.created_at}
+                      isNew={!!listing.createdAt && isNewer(listing.createdAt, alert.created_at)}
                       onView={() => onView(listing)}
                     />
                   ))}

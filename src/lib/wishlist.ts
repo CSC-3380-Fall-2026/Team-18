@@ -55,3 +55,10 @@ export function matchesAlert(listing: Pick<Listing, 'title' | 'tag' | 'category'
   const haystack = `${listing.title} ${listing.tag} ${listing.category ?? ''}`.toLowerCase()
   return haystack.includes(keyword.toLowerCase())
 }
+
+// Is time a later than time b? Compares real times, not text, so different
+// timestamp formats (database vs. browser) can't trip it up. An empty b means "never".
+export function isNewer(a: string, b: string) {
+  if (!b) return true
+  return Date.parse(a) > Date.parse(b)
+}
