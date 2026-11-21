@@ -19,10 +19,11 @@ export type Listing = {
   icon: string
   photo?: string | null
   sellerId?: string
-  category?: string
   createdAt?: string
   condition: string
   seller: Seller
+  description: string | null
+  category: string
 }
 
 export const sampleListings: Listing[] = [
@@ -34,6 +35,8 @@ export const sampleListings: Listing[] = [
     tag: 'Tailgate Ready',
     icon: '🏈',
     condition: 'New',
+    description: null,
+    category: 'Clothing & Merch',
     seller: { name: 'Jordan M.', initials: 'JM', rating: 4.9, trades: 12, verified: true },
   },
   {
@@ -44,6 +47,8 @@ export const sampleListings: Listing[] = [
     tag: 'Back to School',
     icon: '📚',
     condition: 'Like new',
+    description: null,
+    category: 'Textbooks',
     seller: { name: 'Aaliyah R.', initials: 'AR', rating: 4.7, trades: 5, verified: true },
   },
   {
@@ -54,6 +59,8 @@ export const sampleListings: Listing[] = [
     tag: 'Move-Out Day',
     icon: '🧊',
     condition: 'Good',
+    description: null,
+    category: 'Dorm & Kitchen',
     seller: { name: 'Marcus T.', initials: 'MT', rating: 4.5, trades: 8, verified: true },
   },
   {
@@ -64,6 +71,8 @@ export const sampleListings: Listing[] = [
     tag: 'Move-In Day',
     icon: '💡',
     condition: 'Good',
+    description: null,
+    category: 'Electronics',
     seller: { name: 'Sofia L.', initials: 'SL', rating: 4.8, trades: 3, verified: false },
   },
   {
@@ -74,6 +83,8 @@ export const sampleListings: Listing[] = [
     tag: 'Back to School',
     icon: '🧮',
     condition: 'Like new',
+    description: null,
+    category: 'Electronics',
     seller: { name: 'Devin K.', initials: 'DK', rating: 5.0, trades: 20, verified: true },
   },
 ]

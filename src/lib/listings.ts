@@ -19,6 +19,7 @@ type ListingRow = {
   pickup_location: string
   seasonal_tag: string | null
   category: string
+  description: string | null
   condition: string
   seller_id: string
   photos: string[] | null
@@ -71,6 +72,7 @@ export async function fetchListings(): Promise<Listing[]> {
       category: row.category,
       createdAt: row.created_at,
       condition: row.condition,
+      description: row.description,
       seller: {
         name,
         initials: initialsFrom(name),
