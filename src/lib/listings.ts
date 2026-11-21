@@ -23,6 +23,7 @@ type ListingRow = {
   condition: string
   seller_id: string
   photos: string[] | null
+  created_at: string
 }
 
 type ProfileRow = {
@@ -40,7 +41,7 @@ function initialsFrom(name: string) {
 export async function fetchListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from('listings')
-    .select('id, title, price, pickup_location, seasonal_tag, category, condition, seller_id, photos')
+    .select('id, title, price, pickup_location, seasonal_tag, category, condition, seller_id, photos, created_at')
     .eq('status', 'available')
     .order('created_at', { ascending: false })
 
@@ -64,10 +65,12 @@ export async function fetchListings(): Promise<Listing[]> {
       title: row.title,
       price: Number(row.price),
       pickup: row.pickup_location,
-      tag: row.seasonal_tag ?? row.category,
+      tag: row.seasonal_tag ?? 'General Trading',
       icon: categoryIcons[row.category] ?? '📦',
       photo: row.photos?.[0] ?? null,
       sellerId: row.seller_id,
+      category: row.category,
+      createdAt: row.created_at,
       condition: row.condition,
       description: row.description,
       category: row.category,
