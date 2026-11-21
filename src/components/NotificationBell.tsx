@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
 
+import { useEffect, useRef, useState } from 'react'
+import { isNewer } from '../lib/wishlist'
+ 
 export type Notification = {
   listingId: string
   keyword: string
@@ -9,7 +11,7 @@ export type Notification = {
   icon: string
   createdAt: string
 }
-
+ 
 type NotificationBellProps = {
   items: Notification[]
   // Anything newer than this counts as unread
@@ -17,7 +19,7 @@ type NotificationBellProps = {
   onOpen: () => void
   onView: (listingId: string) => void
 }
-
+ 
 // "8h", "3m", "2d" like a console notification
 function timeAgo(iso: string) {
   const minutes = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000))
@@ -26,12 +28,12 @@ function timeAgo(iso: string) {
   if (hours < 24) return `${hours}h`
   return `${Math.round(hours / 24)}d`
 }
-
+ 
 function NotificationBell({ items, lastSeen, onOpen, onView }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
-  const unread = items.filter((item) => item.createdAt > lastSeen).length
-
+  const unread = items.filter((item) => isNewer(item.createdAt, lastSeen)).length
+ 
   // Close when clicking anywhere else
   useEffect(() => {
     if (!open) return
@@ -41,12 +43,12 @@ function NotificationBell({ items, lastSeen, onOpen, onView }: NotificationBellP
     window.addEventListener('mousedown', handleClick)
     return () => window.removeEventListener('mousedown', handleClick)
   }, [open])
-
+ 
   function toggle() {
     if (!open) onOpen()
     setOpen((current) => !current)
   }
-
+ 
   return (
     <div ref={boxRef} className="relative">
       <button
@@ -61,11 +63,11 @@ function NotificationBell({ items, lastSeen, onOpen, onView }: NotificationBellP
           </span>
         )}
       </button>
-
+ 
       {open && (
         <div className="absolute top-12 right-0 z-50 w-96 animate-[fadeIn_0.25s_ease-out] rounded-2xl border border-white/10 bg-surface/95 p-4 shadow-[0_0_40px_rgb(47_107_255/0.35)] backdrop-blur-md">
           <p className="font-display text-2xl font-bold">Notifications</p>
-
+ 
           <div className="mt-4 max-h-96 space-y-2 overflow-y-auto pr-1">
             {items.length === 0 && (
               <p className="py-6 text-center text-sm text-muted">
@@ -97,7 +99,7 @@ function NotificationBell({ items, lastSeen, onOpen, onView }: NotificationBellP
                 </span>
                 <span className="self-start font-display text-xs text-muted">
                   {timeAgo(item.createdAt)}
-                  {item.createdAt > lastSeen && <span className="mt-1 block h-2 w-2 rounded-full bg-lsu-gold" />}
+                  {isNewer(item.createdAt, lastSeen) && <span className="mt-1 block h-2 w-2 rounded-full bg-lsu-gold" />}
                 </span>
               </button>
             ))}
@@ -107,5 +109,6 @@ function NotificationBell({ items, lastSeen, onOpen, onView }: NotificationBellP
     </div>
   )
 }
-
+ 
 export default NotificationBell
+ 

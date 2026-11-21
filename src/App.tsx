@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { fetchListings } from './lib/listings'
-import type { ChatTarget } from './lib/messages'
-import { addAlert, fetchAlerts, fetchSavedIds, matchesAlert, removeAlert, saveListing, unsaveListing } from './lib/wishlist'
+import { fetchName, fetchUnreadCount } from './lib/messages'
+import type { ChatTarget, Message } from './lib/messages'
+import { addAlert, fetchAlerts, fetchSavedIds, isNewer, matchesAlert, removeAlert, saveListing, unsaveListing } from './lib/wishlist'
 import type { WishlistAlert } from './lib/wishlist'
 import AddListing from './components/AddListing'
 import Background from './components/Background'
@@ -37,6 +38,9 @@ function App() {
   const [alerts, setAlerts] = useState<WishlistAlert[]>([])
   // Pop-up when a new listing matches one of my alerts
   const [toast, setToast] = useState<{ keyword: string; listingId: string; title: string } | null>(null)
+  // Messages: unread count for the tab badge, and a pop-up when a new one arrives
+  const [unreadMessages, setUnreadMessages] = useState(0)
+  const [messageToast, setMessageToast] = useState<(ChatTarget & { body: string }) | null>(null)
 
   // Real listings from Supabase. Fall back to the samples while the database is empty.
   const allListings = realListings.length > 0 ? realListings : sampleListings
@@ -134,6 +138,60 @@ function App() {
     }
   }, [userId])
 
+  // Unread messages: count them on login, then watch for new ones sent to me
+  const chatRef = useRef<ChatTarget | null>(null)
+  useEffect(() => {
+    chatRef.current = chat
+  }, [chat])
+  const listingsRef = useRef<Listing[]>([])
+  useEffect(() => {
+    listingsRef.current = allListings
+  })
+
+  useEffect(() => {
+    if (!userId) return
+    const me = userId
+    fetchUnreadCount(me).then(setUnreadMessages)
+
+    const channel = supabase
+      .channel('my-messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${me}` },
+        async (payload) => {
+          const message = payload.new as Message
+          fetchUnreadCount(me).then(setUnreadMessages)
+          // No pop-up if I'm already looking at that chat
+          const open = chatRef.current
+          if (open && open.listingId === message.listing_id && open.otherUserId === message.sender_id) return
+          const listing = listingsRef.current.find((l) => String(l.id) === message.listing_id)
+          const otherName = await fetchName(message.sender_id)
+          setMessageToast({
+            listingId: message.listing_id,
+            listingTitle: listing?.title ?? 'your listing',
+            otherUserId: message.sender_id,
+            otherName,
+            body: message.body,
+          })
+        },
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId])
+
+  function refreshUnread() {
+    if (userId) fetchUnreadCount(userId).then(setUnreadMessages)
+  }
+
+  // Hide the message pop-up after a few seconds
+  useEffect(() => {
+    if (!messageToast) return
+    const timer = setTimeout(() => setMessageToast(null), 8000)
+    return () => clearTimeout(timer)
+  }, [messageToast])
+
   // Notification center: every listing from someone else that matches an alert,
   // posted after I started watching for it. Newest first.
   const notifications: Notification[] = []
@@ -141,7 +199,7 @@ function App() {
   for (const listing of allListings) {
     if (!listing.sellerId || listing.sellerId === userId || !listing.createdAt) continue
     const createdAt = listing.createdAt
-    const hit = alerts.find((alert) => createdAt > alert.created_at && matchesAlert(listing, alert.keyword))
+    const hit = alerts.find((alert) => isNewer(createdAt, alert.created_at) && matchesAlert(listing, alert.keyword))
     if (!hit || seenIds.has(String(listing.id))) continue
     seenIds.add(String(listing.id))
     notifications.push({
@@ -154,7 +212,7 @@ function App() {
       createdAt,
     })
   }
-  notifications.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  notifications.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
 
   // When I last opened the bell (saved in this browser so the badge stays cleared)
   const seenKey = 'shopflow-notifications-seen'
@@ -270,6 +328,7 @@ function App() {
         onTabChange={setActiveTab}
         email={session.user.email ?? ''}
         onSignOut={() => supabase.auth.signOut()}
+        badges={{ Messages: unreadMessages }}
         actions={
           <NotificationBell
             items={notifications}
@@ -412,13 +471,41 @@ function App() {
         </div>
       )}
 
+      {/* Message pop-up: someone just messaged me */}
+      {messageToast && (
+        <div className="fixed top-24 right-6 z-[60] w-80 animate-[fadeIn_0.4s_ease-out] rounded-2xl border border-glow/50 bg-surface/95 p-4 shadow-[0_0_30px_rgb(56_214_255/0.35)] backdrop-blur">
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-glow">💬 New message</p>
+          <p className="mt-2 text-sm">
+            <span className="font-semibold">{messageToast.otherName}</span> about {messageToast.listingTitle}:
+          </p>
+          <p className="mt-1 truncate text-sm text-muted">"{messageToast.body}"</p>
+          <div className="mt-3 flex gap-2">
+            <Button
+              onClick={() => {
+                setChat(messageToast)
+                setMessageToast(null)
+              }}
+            >
+              Reply
+            </Button>
+            <Button variant="ghost" onClick={() => setMessageToast(null)}>
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Chat drawer slides in over any page */}
       {chat && (
         <ChatPanel
           key={`${chat.listingId}:${chat.otherUserId}`}
           chat={chat}
           myId={session.user.id}
-          onClose={() => setChat(null)}
+          onClose={() => {
+            setChat(null)
+            refreshUnread()
+          }}
+          onRead={refreshUnread}
         />
       )}
     </div>
