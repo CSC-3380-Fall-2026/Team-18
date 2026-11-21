@@ -73,7 +73,6 @@ export async function fetchListings(): Promise<Listing[]> {
       createdAt: row.created_at,
       condition: row.condition,
       description: row.description,
-      category: row.category,
       seller: {
         name,
         initials: initialsFrom(name),

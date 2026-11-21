@@ -19,7 +19,6 @@ export type Listing = {
   icon: string
   photo?: string | null
   sellerId?: string
-  category?: string
   createdAt?: string
   condition: string
   seller: Seller

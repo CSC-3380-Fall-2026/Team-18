@@ -24,11 +24,9 @@ type EditListingProps = {
 function EditListing({ listing, onPosted }: EditListingProps) {
     const [title, setTitle] = useState(listing.title)
     const [price, setPrice] = useState(listing.price)
-    const [description, setDescription] = useState('')
-    // description needs to be added to type listing
+    const [description, setDescription] = useState(listing.description ?? '')
     const [pickupLocation, setPickupLocation] = useState(listing.pickup)
-    const [category, setCategory] = useState('')
-    // category needs to be added to type listing
+    const [category, setCategory] = useState(listing.category)
     const [condition, setCondition] = useState(listing.condition)
     const [seasonalTag, setSeasonalTag] = useState(listing.tag)
     const [photo, setPhoto] = useState<File | null>(null)
@@ -48,18 +46,22 @@ function EditListing({ listing, onPosted }: EditListingProps) {
         }
 
         setSaving(true)
+        const { data: userData } = await supabase.auth.getUser()
+        const userId = userData.user?.id
+        if (!userId) {
+            setSaving(false)
+            setError('You need to be logged in to edit a listing.')
+            return
+        }
+        if (listing.sellerId !== userId){
+            setSaving(false)
+            setError('You can only edit your own listing.')
+            return
+            }
 
         // 1. Upload the photo (if there is one) into the seller's own folder in Storage
         let photoUrl: string | null = null
         if (photo) {
-            const { data: userData } = await supabase.auth.getUser()
-            const userId = userData.user?.id
-            if (!userId) {
-                setSaving(false)
-                setError('You need to be logged in to post.')
-                return
-            }
-
             const extension = photo.name.split('.').pop() ?? 'jpg'
             const path = `${userId}/${crypto.randomUUID()}.${extension}`
             const { error: uploadError } = await supabase.storage.from('listing-photos').upload(path, photo)
@@ -73,24 +75,23 @@ function EditListing({ listing, onPosted }: EditListingProps) {
             // Turn the stored file into a public link we can show in <img>
             photoUrl = supabase.storage.from('listing-photos').getPublicUrl(path).data.publicUrl
         }
-        // Section edited out until connection to supabase is complete to avoid errors
-        // // 2. Save the listing (seller_id and status fill themselves in)
-        // const { error: updateError } = await supabase.from('listings').update({
-        //     title: title.trim(),
-        //     price: Number(price),
-        //     category,
-        //     condition,
-        //     description: description.trim() || null,
-        //     pickup_location: pickupLocation.trim(),
-        //     seasonal_tag: seasonalTag || null,
-        //     photos: photoUrl ? [photoUrl] : null,
-        // }).eq('id', listing.id)
-        // setSaving(false)
-        //
-        // if (updateError) {
-        //     setError(updateError.message)
-        //     return
-        // }
+        // // 2. Save the updated listing (seller_id and status fill themselves in)
+        const { error: updateError } = await supabase.from('listings').update({
+            title: title.trim(),
+            price: Number(price),
+            category,
+            condition,
+            description: description.trim() || null,
+            pickup_location: pickupLocation.trim(),
+            seasonal_tag: seasonalTag || null,
+            ...(photoUrl ? { photos : [photoUrl] } : {})
+        }).eq('id', listing.id)
+        setSaving(false)
+
+        if (updateError) {
+            setError(updateError.message)
+            return
+        }
 
         onPosted()
     }
@@ -217,8 +218,8 @@ function EditListing({ listing, onPosted }: EditListingProps) {
                             htmlFor="photo"
                             className="flex cursor-pointer items-center gap-4 rounded-xl border border-dashed border-white/20 bg-bg/40 p-4 transition hover:border-glow"
                         >
-                            {previewUrl ? (
-                                <img src={previewUrl} alt="Preview" className="h-20 w-20 rounded-lg object-cover" />
+                            {previewUrl || listing.photo ? (
+                                <img src={previewUrl || listing.photo || ''} alt="Preview" className="h-20 w-20 rounded-lg object-cover" />
                             ) : (
                                 <span className="flex h-20 w-20 items-center justify-center rounded-lg bg-surface text-2xl">📷</span>
                             )}
