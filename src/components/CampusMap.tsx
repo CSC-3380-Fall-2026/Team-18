@@ -168,7 +168,7 @@ function CampusMap({ listings, onPickZone }: CampusMapProps) {
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         {/* The map */}
         <div
-          className={`shopflow-map view-${view} relative h-[calc(100vh-280px)] min-h-96 overflow-hidden rounded-2xl border border-glow/30 shadow-[0_0_50px_rgb(47_107_255/0.35)]`}
+          className={`shopflow-map view-${view} relative h-[calc(100vh-100px)] min-h-96 overflow-hidden rounded-2xl border border-glow/30 shadow-[0_0_50px_rgb(47_107_255/0.35)]`}
         >
           <MapContainer ref={setMap} center={campusCenter} zoom={16} maxZoom={19} scrollWheelZoom className="h-full w-full">
             <TileLayer key={view} url={tiles.url} attribution={tiles.attribution} maxZoom={19} />
