@@ -64,6 +64,7 @@ function CampusMap({ listings, onPickZone }: CampusMapProps) {
   const [activeZone, setActiveZone] = useState<string | null>(null)
   // Look at the spot: the map, a real photo, or a blocky pixel version of the photo
   const [lens, setLens] = useState<'map' | 'photo' | 'pixel'>('map')
+  const [locationError, setLocationError] = useState(false)
 
   // Only count listings that match the tag filter
   const shown = selectedTag ? listings.filter((l) => l.tag === selectedTag) : listings
@@ -86,7 +87,14 @@ function CampusMap({ listings, onPickZone }: CampusMapProps) {
       setUserPos([event.latlng.lat, event.latlng.lng])
       setLocating(false)
     }
-    const onError = () => setLocating(false)
+    const onError = (event: L.ErrorEvent) => {
+      console.log("Location error:", event.message)
+      setLocating(false)
+      if (event.code == 1) {
+        setLocationError(true)
+        setTimeout(() => setLocationError(false), 3000)
+      }
+    }
     const onClick = (event: LeafletMouseEvent) =>
       console.log(`[${event.latlng.lat.toFixed(4)}, ${event.latlng.lng.toFixed(4)}]`)
 
@@ -365,7 +373,7 @@ function CampusMap({ listings, onPickZone }: CampusMapProps) {
               onClick={findMe}
               className="rounded-full border border-white/15 bg-surface/90 px-4 py-2 font-display text-xs font-bold text-ink shadow-[0_0_14px_rgb(47_107_255/0.5)] transition hover:border-glow"
             >
-              {locating ? 'Finding you...' : '◎ Find me'}
+              {locating ? 'Finding you...' : locationError ? "Can't access location" : '◎ Find me'}
             </button>
             <button
               onClick={exitZone}
